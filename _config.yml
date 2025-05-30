@@ -7,7 +7,7 @@ first_name: Alessandro
 middle_name:
 last_name: Riva
 contact_note: >
-  #You can even add a little note about which of these is the best way to reach you.
+  Feel free to contact me for any information.
 description: > # the ">" symbol means to ignore newlines until "footer_text:"
   My personal page, with infos about me and my work.
 footer_text: >
@@ -47,8 +47,8 @@ repo_trophies:
 # -----------------------------------------------------------------------------
 
 navbar_fixed: true
-footer_fixed: true
-search_enabled: true
+footer_fixed: false
+search_enabled: false
 socials_in_search: true
 posts_in_search: true
 bib_search: true
@@ -122,12 +122,12 @@ disqus_shortname: al-folio # put your disqus shortname
 # If you have blog posts published on medium.com or other external sources,
 # you can display them in your blog by adding a link to the RSS feed.
 external_sources:
-  - name: medium.com
-    rss_url: https://medium.com/@al-folio/feed
-  - name: Google Blog
-    posts:
-      - url: https://blog.google/technology/ai/google-gemini-update-flash-ai-assistant-io-2024/
-        published_date: 2024-05-14
+#  - name: medium.com
+#    rss_url: https://medium.com/@al-folio/feed
+#  - name: Google Blog
+#    posts:
+#      - url: https://blog.google/technology/ai/google-gemini-update-flash-ai-assistant-io-2024/
+#        published_date: 2024-05-14
 
 # -----------------------------------------------------------------------------
 # Newsletter
@@ -191,6 +191,14 @@ exclude:
   - README.md
   - readme_preview/
   - vendor
+  # Hidden ready to use sections
+  - _pages/news
+  - _pages/blog
+  - _pages/teaching
+  - _pages/profiles
+  - _pages/books
+  - _pages/dropdown
+  - _pages/projects
 keep_files:
   - CNAME
   - .nojekyll
@@ -263,8 +271,8 @@ display_categories: ["external-services"] # these categories will be displayed o
 # -----------------------------------------------------------------------------
 
 scholar:
-  last_name: [Einstein]
-  first_name: [Albert, A.]
+  last_name: [Riva]
+  first_name: [Alessandro, A.]
 
   style: apa
   locale: en
