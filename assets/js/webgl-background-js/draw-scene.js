@@ -1,5 +1,5 @@
-function drawScene(gl, programInfo, buffers, cubeRotation) {
-  gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
+function drawScene(gl, programInfo, buffers, rotation) {
+  gl.clearColor(0.0, 0.0, 0.0, 0.0); // Clear to black, fully opaque
   gl.clearDepth(1.0); // Clear everything
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
   gl.depthFunc(gl.LEQUAL); // Near things obscure far things
@@ -37,25 +37,7 @@ function drawScene(gl, programInfo, buffers, cubeRotation) {
     [-0.0, 0.0, -6.0]
   ); // amount to translate
 
-  mat4.rotate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to rotate
-    cubeRotation, // amount to rotate in radians
-    [0, 0, 1]
-  ); // axis to rotate around (Z)
-  mat4.rotate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to rotate
-    cubeRotation * 0.7, // amount to rotate in radians
-    [0, 1, 0]
-  ); // axis to rotate around (Y)
-  mat4.rotate(
-    modelViewMatrix, // destination matrix
-    modelViewMatrix, // matrix to rotate
-    cubeRotation * 0.3, // amount to rotate in radians
-    [1, 0, 0]
-  ); // axis to rotate around (X)
-
+  mat4.multiply(modelViewMatrix, modelViewMatrix, rotation)
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute.
   setPositionAttribute(gl, buffers, programInfo);

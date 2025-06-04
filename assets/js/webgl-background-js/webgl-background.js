@@ -5,6 +5,9 @@ import "https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
 
 let cubeRotation = 0.0;
 let deltaTime = 0;
+let rotating = true
+let rotation = mat4.create();
+let pos_x = 0
 
 main();
 
@@ -13,19 +16,33 @@ main();
 //
 function main() {
   const canvas = document.getElementById("webgl-background-js")
+  canvas.width = canvas.clientWidth
+  canvas.height = canvas.clientHeight
+
+  document.addEventListener("mousemove", (event)=>{
+    console.log(event.pageX)
+    pos_x = event.clientX
+    let width = document.body.clientWidth
+    pos_x = (pos_x - (width/2))/(width/2)
+    console.log(pos_x)
+    console.log(rotation)
+    //if (pos_x < 10)
+    //  rotating = true
+    //else
+    //  rotating = false
+
+  })
+
   // Initialize the GL context
   const gl = canvas.getContext("webgl");
 
   // Only continue if WebGL is available and working
   if (gl === null) {
-    alert(
-      "Unable to initialize WebGL. Your browser or machine may not support it."
-    );
     return;
   }
 
   // Set clear color to black, fully opaque
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
   // Clear the color buffer with specified clear color
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -91,8 +108,11 @@ function main() {
     deltaTime = now - then;
     then = now;
 
-    drawScene(gl, programInfo, buffers, cubeRotation);
-    cubeRotation += deltaTime;
+    if (rotating)
+      console.log(rotation)
+      mat4.rotateY(rotation, rotation, pos_x/10)
+
+    drawScene(gl, programInfo, buffers, rotation);
 
     requestAnimationFrame(render);
   }
