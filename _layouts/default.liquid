@@ -20,6 +20,13 @@
     <!-- Header -->
     {% include header.liquid %}
 
+    {% if site.webgl_background_js %}
+      {% if site.webgl_background_js == true %}
+        <script src={{ '/assets/js/webgl-background-js/webgl-background.js' | relative_url }} type="module"></script>
+        <canvas id="webgl-background-js"></canvas>
+      {% endif %}
+    {% endif %}
+
     <!-- Content -->
     <div class="container mt-5" role="main">
       {% if page.toc and page.toc.sidebar %}
