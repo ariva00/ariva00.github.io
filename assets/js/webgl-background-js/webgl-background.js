@@ -3,7 +3,6 @@ import { drawScene } from "./draw-scene.js";
 
 import "https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
 
-let cubeRotation = 0.0;
 let deltaTime = 0;
 let rotating = true
 let rotation = mat4.create();
@@ -26,10 +25,6 @@ function main() {
     pos_x = (pos_x - (width/2))/(width/2)
     console.log(pos_x)
     console.log(rotation)
-    //if (pos_x < 10)
-    //  rotating = true
-    //else
-    //  rotating = false
 
   })
 
@@ -41,7 +36,7 @@ function main() {
     return;
   }
 
-  // Set clear color to black, fully opaque
+  // Set clear color to black, fully transparent
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
   // Clear the color buffer with specified clear color
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -136,11 +131,6 @@ function initShaderProgram(gl, vsSource, fsSource) {
   // If creating the shader program failed, alert
 
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    alert(
-      `Unable to initialize the shader program: ${gl.getProgramInfoLog(
-        shaderProgram
-      )}`
-    );
     return null;
   }
 
@@ -165,9 +155,6 @@ function loadShader(gl, type, source) {
   // See if it compiled successfully
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert(
-      `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`
-    );
     gl.deleteShader(shader);
     return null;
   }
