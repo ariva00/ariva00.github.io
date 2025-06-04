@@ -34,7 +34,7 @@ function drawScene(gl, programInfo, buffers, rotation) {
   mat4.translate(
     modelViewMatrix, // destination matrix
     modelViewMatrix, // matrix to translate
-    [-0.0, 0.0, -6.0]
+    [-0.0, 0.0, -10.0]
   ); // amount to translate
 
   mat4.multiply(modelViewMatrix, modelViewMatrix, rotation)
@@ -42,7 +42,8 @@ function drawScene(gl, programInfo, buffers, rotation) {
   // buffer into the vertexPosition attribute.
   setPositionAttribute(gl, buffers, programInfo);
 
-  setColorAttribute(gl, buffers, programInfo);
+  //setColorAttribute(gl, buffers, programInfo);
+  setBaricentricCoordinatesAttribute(gl, buffers, programInfo);
 
   // Tell WebGL which indices to use to index the vertices
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
@@ -63,7 +64,7 @@ function drawScene(gl, programInfo, buffers, rotation) {
   );
 
   {
-    const vertexCount = 36;
+    const vertexCount = buffers.indices.length;
     const type = gl.UNSIGNED_SHORT;
     const offset = 0;
     gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
@@ -109,6 +110,24 @@ function setColorAttribute(gl, buffers, programInfo) {
     offset
   );
   gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+}
+
+function setBaricentricCoordinatesAttribute(gl, buffers, programInfo) {
+  const numComponents = 3;
+  const type = gl.FLOAT;
+  const normalize = false;
+  const stride = 0;
+  const offset = 0;
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffers.baricentricCoordinates);
+  gl.vertexAttribPointer(
+    programInfo.attribLocations.baricentricPosition,
+    numComponents,
+    type,
+    normalize,
+    stride,
+    offset
+  );
+  gl.enableVertexAttribArray(programInfo.attribLocations.baricentricPosition);
 }
 
 export { drawScene };

@@ -4,16 +4,25 @@ import { drawScene } from "./draw-scene.js";
 import "https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
 
 let deltaTime = 0;
-let rotating = true
+let rotating = true;
 let rotation = mat4.create();
-let pos_x = 0
-
-main();
+let translation = mat4.create();
+let transform = mat4.create();
+let pos_x = 0;
+let pos_y = 0;
+fetch("/assets/3Dobjects/jellyfish.obj").then((response) => {
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return response.text();
+}).then((text) => {
+  main(text);
+})
 
 //
 // start here
 //
-function main() {
+function main(obj) {
   const canvas = document.getElementById("webgl-background-js")
   canvas.width = canvas.clientWidth
   canvas.height = canvas.clientHeight
@@ -21,8 +30,11 @@ function main() {
   document.addEventListener("mousemove", (event)=>{
     console.log(event.pageX)
     pos_x = event.clientX
+    pos_y = event.clientY
     let width = document.body.clientWidth
+    let height = document.body.clientHeight
     pos_x = (pos_x - (width/2))/(width/2)
+    pos_y = (pos_y - (height/2))/(height/2)
     console.log(pos_x)
     console.log(rotation)
 
@@ -45,26 +57,30 @@ function main() {
 
   const vsSource = `
     attribute vec4 aVertexPosition;
-    attribute vec4 aVertexColor;
+    attribute vec3 aBaricentricCoord;
 
     uniform mat4 uModelViewMatrix;
     uniform mat4 uProjectionMatrix;
 
-    varying lowp vec4 vColor;
+    varying lowp vec3 vBaricentricCoord;
 
     void main(void) {
       gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-      vColor = aVertexColor;
+      vBaricentricCoord = aBaricentricCoord;
     }
   `;
 
   // Fragment shader program
 
   const fsSource = `
-    varying lowp vec4 vColor;
+    varying lowp vec3 vBaricentricCoord;
 
     void main(void) {
-      gl_FragColor = vColor;
+      gl_FragColor[0] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
+      gl_FragColor[1] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
+      gl_FragColor[2] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
+      gl_FragColor[3] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
+
     }
   `;
 
@@ -80,7 +96,8 @@ function main() {
     program: shaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-      vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
+      //vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
+      baricentricPosition: gl.getAttribLocation(shaderProgram, "aBaricentricCoord")
     },
     uniformLocations: {
       projectionMatrix: gl.getUniformLocation(
@@ -93,7 +110,7 @@ function main() {
 
   // Here's where we call the routine that builds all the
   // objects we'll be drawing.
-  const buffers = initBuffers(gl);
+  const buffers = initBuffers(gl, obj);
 
   let then = 0;
 
@@ -105,9 +122,12 @@ function main() {
 
     if (rotating)
       console.log(rotation)
-      mat4.rotateY(rotation, rotation, pos_x/10)
+      mat4.rotateY(rotation, rotation, pos_x/50)
+      //mat4.translate(translation, translation, [(Math.random() - 0.5)*0.1, (Math.random() - 0.5)*0.1, (Math.random() - 0.5)*0.1])
+      mat4.multiply(transform, translation, rotation)
 
-    drawScene(gl, programInfo, buffers, rotation);
+
+    drawScene(gl, programInfo, buffers, transform);
 
     requestAnimationFrame(render);
   }
