@@ -8,22 +8,16 @@ let rotating = true;
 let rotation = mat4.create();
 let translation = mat4.create();
 let transform = mat4.create();
+let translation_vec = vec3.fromValues((Math.random() - 0.5)*0.01, (Math.random() - 0.5)*0.01, (Math.random() - 0.5)*0.01);
 let pos_x = 0;
 let pos_y = 0;
-fetch("/assets/3Dobjects/jellyfish.obj").then((response) => {
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return response.text();
-}).then((text) => {
-  main(text);
-})
 
 //
 // start here
 //
-function main(obj) {
+function background3D(obj, color) {
   const canvas = document.getElementById("webgl-background-js")
+  canvas.style.opacity = color[3] //TODO: understand why alpha in glFragColor is not enough
   canvas.width = canvas.clientWidth
   canvas.height = canvas.clientHeight
 
@@ -74,13 +68,10 @@ function main(obj) {
 
   const fsSource = `
     varying lowp vec3 vBaricentricCoord;
+    uniform lowp vec4 uWireframeColor;
 
     void main(void) {
-      gl_FragColor[0] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
-      gl_FragColor[1] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
-      gl_FragColor[2] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
-      gl_FragColor[3] = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01));
-
+      gl_FragColor = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01))*uWireframeColor;
     }
   `;
 
@@ -105,6 +96,7 @@ function main(obj) {
         "uProjectionMatrix"
       ),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
+      wireframeColor: gl.getUniformLocation(shaderProgram, "uWireframeColor"),
     },
   };
 
@@ -120,14 +112,20 @@ function main(obj) {
     deltaTime = now - then;
     then = now;
 
-    if (rotating)
-      console.log(rotation)
-      mat4.rotateY(rotation, rotation, pos_x/50)
-      //mat4.translate(translation, translation, [(Math.random() - 0.5)*0.1, (Math.random() - 0.5)*0.1, (Math.random() - 0.5)*0.1])
-      mat4.multiply(transform, translation, rotation)
+    mat4.rotateY(rotation, rotation, deltaTime * pos_x/2)
+    vec3.rotateX(translation_vec, translation_vec, vec3.fromValues(0,0,0), deltaTime * (Math.random() - 0.5))
+    vec3.rotateY(translation_vec, translation_vec, vec3.fromValues(0,0,0), deltaTime * (Math.random() - 0.5))
+    vec3.rotateZ(translation_vec, translation_vec, vec3.fromValues(0,0,0), deltaTime * (Math.random() - 0.5))
+
+    mat4.translate(translation, translation, translation_vec)
+    mat4.multiply(transform, translation, rotation)
+
+    if(Math.random()>0.99) {
+      translation_vec = vec3.fromValues((Math.random() - 0.5)*0.01, (Math.random() - 0.5)*0.01, (Math.random() - 0.5)*0.01);
+    }
 
 
-    drawScene(gl, programInfo, buffers, transform);
+    drawScene(gl, programInfo, buffers, transform, color);
 
     requestAnimationFrame(render);
   }
@@ -175,9 +173,12 @@ function loadShader(gl, type, source) {
   // See if it compiled successfully
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert(gl.getShaderInfoLog(shader));
     gl.deleteShader(shader);
     return null;
   }
 
   return shader;
 }
+
+export { background3D }

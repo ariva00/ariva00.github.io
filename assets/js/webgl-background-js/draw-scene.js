@@ -1,4 +1,4 @@
-function drawScene(gl, programInfo, buffers, rotation) {
+function drawScene(gl, programInfo, buffers, objectTransform, color) {
   gl.clearColor(0.0, 0.0, 0.0, 0.0); // Clear to black, fully transparent
   gl.clearDepth(1.0); // Clear everything
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
@@ -37,7 +37,7 @@ function drawScene(gl, programInfo, buffers, rotation) {
     [-0.0, 0.0, -10.0]
   ); // amount to translate
 
-  mat4.multiply(modelViewMatrix, modelViewMatrix, rotation)
+  mat4.multiply(modelViewMatrix, modelViewMatrix, objectTransform)
   // Tell WebGL how to pull out the positions from the position
   // buffer into the vertexPosition attribute.
   setPositionAttribute(gl, buffers, programInfo);
@@ -61,6 +61,10 @@ function drawScene(gl, programInfo, buffers, rotation) {
     programInfo.uniformLocations.modelViewMatrix,
     false,
     modelViewMatrix
+  );
+  gl.uniform4f(
+    programInfo.uniformLocations.wireframeColor,
+    color[0], color[1], color[2], color[3]
   );
 
   {

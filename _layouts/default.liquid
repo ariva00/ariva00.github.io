@@ -22,8 +22,18 @@
 
     {% if site.webgl_background_js %}
       {% if site.webgl_background_js == true %}
-        <script src={{ '/assets/js/webgl-background-js/webgl-background.js' | relative_url }} type="module"></script>
         <canvas id="webgl-background-js"></canvas>
+        <script type="module">
+          import { background3D } from "{{ '/assets/js/webgl-background-js/webgl-background.js' | relative_url }}"
+          fetch("/assets/3Dobjects/jellyfish.obj").then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.text();
+          }).then((text) => {
+            background3D(text, {{ site.webgl_background_js_wireframe_color | jsonify }});
+          })
+        </script>
       {% endif %}
     {% endif %}
 
