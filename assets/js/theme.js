@@ -55,6 +55,10 @@ let applyTheme = () => {
     setVegaLiteTheme(theme);
   }
 
+  if (typeof window.background3DObject !== "undefined") {
+    window.background3DObject.setTheme(theme)
+  }
+
   document.documentElement.setAttribute("data-theme", theme);
 
   // Add class to tables.

@@ -654,4 +654,6 @@ jsonresume:
 # -----------------------------------------------------------------------------
 
 webgl_background_js : true
-webgl_background_js_wireframe_color : [0.93, 0.64, 0.11, 0.25]
+webgl_background_js_wireframe_color : [0.93, 0.44, 0.11, 0.25]
+webgl_background_js_wireframe_color_dark : [0.93, 0.64, 0.11, 0.25]
+webgl_background_js_obj_path : /assets/3Dobjects/jellyfish.obj

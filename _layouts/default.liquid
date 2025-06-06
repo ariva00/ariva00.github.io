@@ -25,13 +25,20 @@
         <canvas id="webgl-background-js"></canvas>
         <script type="module">
           import { background3D } from "{{ '/assets/js/webgl-background-js/webgl-background.js' | relative_url }}"
-          fetch("/assets/3Dobjects/jellyfish.obj").then((response) => {
+          fetch("{{ site.webgl_background_js_obj_path }}").then((response) => {
             if (!response.ok) {
               throw new Error("Network response was not ok");
             }
             return response.text();
           }).then((text) => {
-            background3D(text, {{ site.webgl_background_js_wireframe_color | jsonify }});
+            background3DObject = new background3D(text, {{ site.webgl_background_js_wireframe_color | jsonify }}, document.getElementById("webgl-background-js"), window);
+            background3DObject.setTheme = (theme) => {
+              if (theme == "dark") {
+                background3DObject.color = {{ site.webgl_background_js_wireframe_color_dark | jsonify }}
+              } else {
+                background3DObject.color = {{ site.webgl_background_js_wireframe_color | jsonify }}
+              }
+            }
           })
         </script>
       {% endif %}
