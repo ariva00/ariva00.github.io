@@ -1,4 +1,4 @@
-function drawScene(gl, programInfo, buffers, objectTransform, color) {
+function drawScene(gl, programInfo, buffers, objectTransform, color, threshold) {
   gl.clearColor(0.0, 0.0, 0.0, 0.0); // Clear to black, fully transparent
   gl.clearDepth(1.0); // Clear everything
   gl.enable(gl.DEPTH_TEST); // Enable depth testing
@@ -66,6 +66,9 @@ function drawScene(gl, programInfo, buffers, objectTransform, color) {
     programInfo.uniformLocations.wireframeColor,
     color[0], color[1], color[2], color[3]
   );
+  gl.uniform1f(programInfo.uniformLocations.wireframeThreshold,
+    threshold
+  )
 
   {
     const vertexCount = buffers.indices.length;

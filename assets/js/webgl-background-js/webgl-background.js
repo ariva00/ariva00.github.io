@@ -6,7 +6,7 @@ import "https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
 //
 // start here
 //
-class background3D{
+class background3D {
 
   #deltaTime = 0;
   #rotation = mat4.create();
@@ -17,49 +17,16 @@ class background3D{
   #pos_y = 0;
   canvas = null;
   color = null;
+  threshold = null;
   #then = 0;
-  #gl = 0;
+  #gl = null;
+  #shaderProgram = null;
 
   setTheme = (theme) => {}
 
-  constructor(obj, color, canvas, context) {
-    this.canvas = canvas
-    if (!context) {
-      context = canvas
-    }
-    context.background3DObject = this
-    this.canvas.style.opacity = color[3] //TODO: understand why alpha in glFragColor is not enough
-    this.canvas.width = this.canvas.clientWidth
-    this.canvas.height = this.canvas.clientHeight
-    this.color = color
+      // Vertex shader program
 
-    document.addEventListener("mousemove", (event)=>{
-      console.log(event.pageX)
-      this.#pos_x = event.clientX
-      this.#pos_y = event.clientY
-      let width = document.body.clientWidth
-      let height = document.body.clientHeight
-      this.#pos_x = (this.#pos_x - (width/2))/(width/2)
-      this.#pos_y = (this.#pos_y - (height/2))/(height/2)
-    })
-
-    // Initialize the GL context
-    this.#gl = this.canvas.getContext("webgl");
-    const gl = this.#gl;
-
-    // Only continue if WebGL is available and working
-    if (gl === null) {
-      return;
-    }
-
-    // Set clear color to black, fully transparent
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    // Clear the color buffer with specified clear color
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    // Vertex shader program
-
-    const vsSource = `
+  #vsSource = `
       attribute vec4 aVertexPosition;
       attribute vec3 aBaricentricCoord;
 
@@ -76,37 +43,128 @@ class background3D{
 
     // Fragment shader program
 
-    const fsSource = `
+  #fsSource = `
       varying lowp vec3 vBaricentricCoord;
       uniform lowp vec4 uWireframeColor;
+      uniform lowp float uWireframeThreshold;
 
       void main(void) {
-        gl_FragColor = float((vBaricentricCoord[0] < 0.01) || (vBaricentricCoord[1] < 0.01) || (vBaricentricCoord[2] < 0.01))*uWireframeColor;
+        gl_FragColor = float((vBaricentricCoord[0] < uWireframeThreshold) || (vBaricentricCoord[1] < uWireframeThreshold) || (vBaricentricCoord[2] < uWireframeThreshold))*uWireframeColor;
       }
     `;
 
-    // Initialize a shader program; this is where all the lighting
-    // for the vertices and so forth is established.
-    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+  loadShader(type, source) {
+    const gl = this.#gl
+    const shader = gl.createShader(type);
+
+    // Send the source to the shader object
+
+    gl.shaderSource(shader, source);
+
+    // Compile the shader program
+
+    gl.compileShader(shader);
+
+    // See if it compiled successfully
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      alert(gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+
+    return shader;
+  }
+
+  initCanvas() {
+    this.canvas.width = this.canvas.clientWidth
+    this.canvas.height = this.canvas.clientHeight
+
+    // Initialize the GL context
+    this.#gl = this.canvas.getContext("webgl");
+    const gl = this.#gl;
+
+    // Only continue if WebGL is available and working
+    if (gl === null) {
+      return;
+    }
+
+    // Set clear color to black, fully transparent
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    // Clear the color buffer with specified clear color
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.CULL_FACE)
+
+  }
+
+  initShaderProgram() {
+    const gl = this.#gl
+    const vertexShader = this.loadShader(gl.VERTEX_SHADER, this.#vsSource);
+    const fragmentShader = this.loadShader(gl.FRAGMENT_SHADER, this.#fsSource);
+
+    // Create the shader program
+
+    this.#shaderProgram = gl.createProgram();
+    gl.attachShader(this.#shaderProgram, vertexShader);
+    gl.attachShader(this.#shaderProgram, fragmentShader);
+    gl.linkProgram(this.#shaderProgram);
+
+    // If creating the shader program failed, alert
+
+    if (!gl.getProgramParameter(this.#shaderProgram, gl.LINK_STATUS)) {
+      this.#shaderProgram = null
+    }
+  }
+
+  constructor(obj, canvas, color = [1.0, 1.0, 1.0, 0.5], threshold = 0.01, context) {
+    this.canvas = canvas
+    if (!context) {
+      context = canvas
+    }
+    context.background3DObject = this
+
+    this.color = color
+    this.threshold = threshold
+    //this.canvas.style.opacity = this.color[3] //TODO: understand why alpha in glFragColor is not enough
+    window.addEventListener("resize", (event) => {
+      this.initCanvas()
+      this.initShaderProgram()
+    })
+    this.initCanvas()
+    this.initShaderProgram()
+    const gl = this.#gl
+
+    document.addEventListener("mousemove", (event)=>{
+      console.log(event.pageX)
+      this.#pos_x = event.clientX
+      this.#pos_y = event.clientY
+      let width = this.canvas.clientWidth
+      let height = this.canvas.clientHeight
+      this.#pos_x = (this.#pos_x - (width/2))/(width/2)
+      this.#pos_y = (this.#pos_y - (height/2))/(height/2)
+    })
 
     // Collect all the info needed to use the shader program.
     // Look up which attributes our shader program is using
     // for aVertexPosition, aVertexColor and also
     // look up uniform locations.
     const programInfo = {
-      program: shaderProgram,
+      program: this.#shaderProgram,
       attribLocations: {
-        vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-        //vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
-        baricentricPosition: gl.getAttribLocation(shaderProgram, "aBaricentricCoord")
+        vertexPosition: gl.getAttribLocation(this.#shaderProgram, "aVertexPosition"),
+        //vertexColor: gl.getAttribLocation(this.#shaderProgram, "aVertexColor"),
+        baricentricPosition: gl.getAttribLocation(this.#shaderProgram, "aBaricentricCoord")
       },
       uniformLocations: {
         projectionMatrix: gl.getUniformLocation(
-          shaderProgram,
+          this.#shaderProgram,
           "uProjectionMatrix"
         ),
-        modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-        wireframeColor: gl.getUniformLocation(shaderProgram, "uWireframeColor"),
+        modelViewMatrix: gl.getUniformLocation(this.#shaderProgram, "uModelViewMatrix"),
+        wireframeColor: gl.getUniformLocation(this.#shaderProgram, "uWireframeColor"),
+        wireframeThreshold: gl.getUniformLocation(this.#shaderProgram, "uWireframeThreshold"),
       },
     };
 
@@ -138,59 +196,10 @@ class background3D{
       this.#translation_vec = vec3.fromValues((Math.random() - 0.5)*0.01, (Math.random() - 0.5)*0.01, (Math.random() - 0.5)*0.01);
     }
 
-    drawScene(this.#gl, programInfo, buffers, this.#transform, this.color);
+    drawScene(this.#gl, programInfo, buffers, this.#transform, this.color, this.threshold);
 
     requestAnimationFrame((now) => this.#render(now, programInfo, buffers));
   }
-}
-
-//
-// Initialize a shader program, so WebGL knows how to draw our data
-//
-function initShaderProgram(gl, vsSource, fsSource) {
-  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-  // Create the shader program
-
-  const shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-
-  // If creating the shader program failed, alert
-
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    return null;
-  }
-
-  return shaderProgram;
-}
-
-//
-// creates a shader of the given type, uploads the source and
-// compiles it.
-//
-function loadShader(gl, type, source) {
-  const shader = gl.createShader(type);
-
-  // Send the source to the shader object
-
-  gl.shaderSource(shader, source);
-
-  // Compile the shader program
-
-  gl.compileShader(shader);
-
-  // See if it compiled successfully
-
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    alert(gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-    return null;
-  }
-
-  return shader;
 }
 
 export { background3D }

@@ -31,7 +31,7 @@
             }
             return response.text();
           }).then((text) => {
-            background3DObject = new background3D(text, {{ site.webgl_background_js_wireframe_color | jsonify }}, document.getElementById("webgl-background-js"), window);
+            background3DObject = new background3D(text, document.getElementById("webgl-background-js"), {{ site.webgl_background_js_wireframe_color | jsonify }}, {{ site.webgl_background_js_wireframe_threshold | jsonify }}, window);
             background3DObject.setTheme = (theme) => {
               if (theme == "dark") {
                 background3DObject.color = {{ site.webgl_background_js_wireframe_color_dark | jsonify }}
