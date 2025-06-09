@@ -8,7 +8,7 @@
             }
             return response.text();
           }).then((text) => {
-            background3DObject = new background3D(text, [0.93,0.44,0.11,0.25], document.getElementById("webgl-background-js"), window);
+            background3DObject = new background3D(text, document.getElementById("webgl-background-js"), [0.93,0.44,0.11,0.25], 0.02, window);
             background3DObject.setTheme = (theme) => {
               if (theme == "dark") {
                 background3DObject.color = [0.93,0.64,0.11,0.25]
