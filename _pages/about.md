@@ -32,7 +32,7 @@ My research interests include geometry processing, computer vision and machine l
 I work in the DigAir research group under the supervision of Prof. Simone Melzi.
 
 Currently I'm working on the use of geometric priors to boost 3D data architectures, with a focus on transformers,
-both in the context of point clouds and meshes for tasks such as 
+both in the context of point clouds and meshes for tasks such as shape matching and mesh generation.
 
 In my free time I enjoy photography and 3D art, passions that also drive my research interests in computer vision and geometry processing.
 I also like movies with no plot, old trains and wired architecture.
